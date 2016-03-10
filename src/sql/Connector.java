@@ -16,6 +16,9 @@ public class Connector
     Connection conn = null;
     Statement stmt = null; //Bör göra Prepared Statements i Java
 
+    /**
+     * Attempts to connect to the Database listed in the DB_URL String using USER and PASSWORD
+     */
     public void connect()
     {
         try
@@ -36,40 +39,43 @@ public class Connector
      *
      * @param query
      * @return
-     * @throws SQLException
      */
-    public TreeMap<Integer, access_id> query(String query) throws SQLException
+    public TreeMap<Integer, access_id> query(String query)
     {
+        TreeMap<Integer, access_id> results = new TreeMap();
         try
         {
-            TreeMap<Integer, access_id> results = new TreeMap();
             stmt = conn.createStatement();
             String sql;
             sql = "SELECT * FROM `access_id`"; // !!!!HARD CODED!!!!
-            ResultSet rs = stmt.executeQuery(sql);
-            access_id temp;
-            while (rs.next())
+            try (ResultSet rs = stmt.executeQuery(sql))
             {
-                temp = new access_id(
-                        rs.getInt("id"),
-                        rs.getInt("unit_id"),
-                        rs.getString("username"),
-                        rs.getInt("delaytimeminute"),
-                        rs.getString("phone")
-                );
-                results.put(temp.ID, temp);
+                access_id temp;
+                while (rs.next())
+                {
+                    temp = new access_id(
+                            rs.getInt("id"),
+                            rs.getInt("unit_id"),
+                            rs.getString("username"),
+                            rs.getInt("delaytimeminute"),
+                            rs.getString("phone")
+                    );
+                    results.put(temp.ID, temp);
+                }
             }
-            
-            rs.close();
             stmt.close();
             conn.close();
         } catch (SQLException e)
         {
             e.printStackTrace();
         }
-        throw new SQLException("Query failed");
+        return results;
     }
 
+    /**
+     * Prints TreeMap content
+     * @param result 
+     */
     public void printResultSet(TreeMap<Integer, access_id> result)
     {
         for (Map.Entry<Integer, access_id> entry : result.entrySet())
